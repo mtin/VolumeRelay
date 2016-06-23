@@ -37,7 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // volume key listener
         volumeTap = SPMediaKeyTap(delegate: self)
-        volumeTap.startWatchingMediaKeys()
+        setupVolumeKeyTap()
         
         // audio device listener http://stackoverflow.com/questions/26070058/how-to-get-notification-if-system-preferences-default-sound-changed
         // tell HAL to manage its own thread for notifications 
@@ -102,11 +102,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let address: AudioObjectPropertyAddress = addresses[Int(index)]
             switch address.mSelector {
             case kAudioHardwarePropertyDefaultOutputDevice:
-                if (getDefaultAudioOutputDeviceName().rangeOfString(airplayDeviceName) != nil) {
-                    print("enabling")
-                } else {
-                    print("disabling")
-                }
+                setupVolumeKeyTap()
             default:
                 print("We didn't expect this!")
                 
@@ -145,9 +141,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let session = NSURLSession.sharedSession()
         let url = NSURL(string: url)!
         let task = session.dataTaskWithURL(url) { (data, response, error) in
-            print(NSString(data: data!, encoding:NSUTF8StringEncoding))
+            //print(NSString(data: data!, encoding:NSUTF8StringEncoding))
         }
         task.resume()
+    }
+    
+    func setupVolumeKeyTap() {
+        if (getDefaultAudioOutputDeviceName().rangeOfString(airplayDeviceName) != nil) {
+            volumeTap.startWatchingMediaKeys()
+        } else {
+            volumeTap.stopWatchingMediaKeys()
+        }
+
     }
 }
 
