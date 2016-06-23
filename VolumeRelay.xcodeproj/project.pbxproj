@@ -10,6 +10,7 @@
 		C880E48B1D1B588D0083A8C9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C880E48A1D1B588D0083A8C9 /* AppDelegate.swift */; };
 		C880E48D1D1B588D0083A8C9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C880E48C1D1B588D0083A8C9 /* Assets.xcassets */; };
 		C880E4901D1B588E0083A8C9 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = C880E48E1D1B588E0083A8C9 /* MainMenu.xib */; };
+		C8EB36991D1B613300BEB97F /* SPMediaKeyTap.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB36981D1B613300BEB97F /* SPMediaKeyTap.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,6 +19,9 @@
 		C880E48C1D1B588D0083A8C9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C880E48F1D1B588E0083A8C9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		C880E4911D1B588E0083A8C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C8EB36961D1B613300BEB97F /* VolumeRelay-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VolumeRelay-Bridging-Header.h"; sourceTree = "<group>"; };
+		C8EB36971D1B613300BEB97F /* SPMediaKeyTap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPMediaKeyTap.h; path = SPMediaKeyTap/SPMediaKeyTap.h; sourceTree = SOURCE_ROOT; };
+		C8EB36981D1B613300BEB97F /* SPMediaKeyTap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPMediaKeyTap.m; path = SPMediaKeyTap/SPMediaKeyTap.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,12 +54,23 @@
 		C880E4891D1B588D0083A8C9 /* VolumeRelay */ = {
 			isa = PBXGroup;
 			children = (
+				C8EB36951D1B611A00BEB97F /* SPMediaKeyTap */,
 				C880E48A1D1B588D0083A8C9 /* AppDelegate.swift */,
 				C880E48C1D1B588D0083A8C9 /* Assets.xcassets */,
 				C880E48E1D1B588E0083A8C9 /* MainMenu.xib */,
 				C880E4911D1B588E0083A8C9 /* Info.plist */,
 			);
 			path = VolumeRelay;
+			sourceTree = "<group>";
+		};
+		C8EB36951D1B611A00BEB97F /* SPMediaKeyTap */ = {
+			isa = PBXGroup;
+			children = (
+				C8EB36971D1B613300BEB97F /* SPMediaKeyTap.h */,
+				C8EB36981D1B613300BEB97F /* SPMediaKeyTap.m */,
+				C8EB36961D1B613300BEB97F /* VolumeRelay-Bridging-Header.h */,
+			);
+			name = SPMediaKeyTap;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -129,6 +144,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C880E48B1D1B588D0083A8C9 /* AppDelegate.swift in Sources */,
+				C8EB36991D1B613300BEB97F /* SPMediaKeyTap.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -230,11 +246,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = VolumeRelay/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.martinfritzsche.VolumeRelay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "VolumeRelay/VolumeRelay-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -242,11 +261,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = VolumeRelay/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.martinfritzsche.VolumeRelay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "VolumeRelay/VolumeRelay-Bridging-Header.h";
 			};
 			name = Release;
 		};
@@ -269,6 +290,7 @@
 				C880E4961D1B588E0083A8C9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
