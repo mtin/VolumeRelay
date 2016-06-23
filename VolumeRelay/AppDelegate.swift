@@ -15,6 +15,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     let statusBarItem = NSStatusBar.systemStatusBar().statusItemWithLength(NSSquareStatusItemLength)
     var volumeTap: SPMediaKeyTap!
+    
+    var volume_up : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_%2B&amount=10"
+    var volume_down : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_-&amount=10"
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         // status bar image
@@ -47,18 +50,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if keyPressed {
             switch keyCode {
             case Int(NX_KEYTYPE_SOUND_UP):
-                print("volume_up")
+                sendGetRequest(volume_up)
                 return
             case Int(NX_KEYTYPE_SOUND_DOWN):
-                print("volume_down")
+                sendGetRequest(volume_down)
                 return
             case Int(NX_KEYTYPE_MUTE):
-                print("mute")
+                //print("mute")
                 return
             default:
                 return
             }
         }
+    }
+    
+    func sendGetRequest(url: String) {
+        let session = NSURLSession.sharedSession()
+        let url = NSURL(string: url)!
+        let task = session.dataTaskWithURL(url) { (data, response, error) in
+            print(NSString(data: data!, encoding:NSUTF8StringEncoding))
+        }
+        task.resume()
     }
 }
 
