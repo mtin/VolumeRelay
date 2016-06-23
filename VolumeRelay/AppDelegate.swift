@@ -21,6 +21,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var volume_down : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_-&amount=10"
     
     var airplayDeviceName: String = "Pioneer N-50"
+    
+    var increaseNotification: NSUserNotification = NSUserNotification()
+    var decreaseNotification: NSUserNotification = NSUserNotification()
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         // status bar image
@@ -70,6 +73,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             audioObjectPropertyListenerBlock)) {
                 print("error while adding audio device listener")
         }
+        
+        // set up notifications
+        increaseNotification.title = "Increasing Volume"
+        increaseNotification.informativeText = "Turning up the volume for " + airplayDeviceName
+        increaseNotification.soundName = nil
+        increaseNotification.contentImage = NSImage(named: "VolumeUpImage")
+        
+        decreaseNotification.title = "Decreasing Volume"
+        decreaseNotification.informativeText = "Turning down the volume for " + airplayDeviceName
+        decreaseNotification.soundName = nil
+        decreaseNotification.contentImage = NSImage(named: "VolumeDownImage")
 
     }
 
@@ -121,9 +135,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if keyPressed {
             switch keyCode {
             case Int(NX_KEYTYPE_SOUND_UP):
+                NSUserNotificationCenter.defaultUserNotificationCenter().deliverNotification(increaseNotification)
                 sendGetRequest(volume_up)
                 return
             case Int(NX_KEYTYPE_SOUND_DOWN):
+                NSUserNotificationCenter.defaultUserNotificationCenter().deliverNotification(decreaseNotification)
                 sendGetRequest(volume_down)
                 return
             case Int(NX_KEYTYPE_MUTE):
@@ -135,16 +151,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    // GET request
-    
-    func sendGetRequest(url: String) {
-        let session = NSURLSession.sharedSession()
-        let url = NSURL(string: url)!
-        let task = session.dataTaskWithURL(url) { (data, response, error) in
-            //print(NSString(data: data!, encoding:NSUTF8StringEncoding))
-        }
-        task.resume()
-    }
+    // Volume Key Tap setup
     
     func setupVolumeKeyTap() {
         if (getDefaultAudioOutputDeviceName().rangeOfString(airplayDeviceName) != nil) {
@@ -158,7 +165,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 button.image = NSImage(named: "StatusBarButtonImageDisabled")
             }
         }
-
+        
+    }
+    
+    // GET request
+    
+    func sendGetRequest(url: String) {
+        let session = NSURLSession.sharedSession()
+        let url = NSURL(string: url)!
+        let task = session.dataTaskWithURL(url) { (data, response, error) in
+            //print(NSString(data: data!, encoding:NSUTF8StringEncoding))
+        }
+        task.resume()
     }
 }
 
