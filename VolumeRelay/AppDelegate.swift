@@ -7,6 +7,7 @@
 //
 
 import Cocoa
+import CoreAudio
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -18,6 +19,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var volume_up : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_%2B&amount=10"
     var volume_down : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_-&amount=10"
+    
+    var airplayDeviceName: String = "Pioneer N-50"
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         // status bar image
@@ -32,16 +35,88 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         statusBarItem.menu = menu
         
-        // event listener
+        // volume key listener
         volumeTap = SPMediaKeyTap(delegate: self)
         volumeTap.startWatchingMediaKeys()
+        
+        // audio device listener http://stackoverflow.com/questions/26070058/how-to-get-notification-if-system-preferences-default-sound-changed
+        // tell HAL to manage its own thread for notifications 
+        var runLoopAddress = AudioObjectPropertyAddress(
+            mSelector: AudioObjectPropertySelector(kAudioHardwarePropertyRunLoop),
+            mScope: AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
+            mElement: AudioObjectPropertyElement(kAudioObjectPropertyElementMaster))
+        
+        var runLoop: CFRunLoopRef? = nil
+        let size = UInt32(sizeofValue(runLoop))
+        if (kAudioHardwareNoError != AudioObjectSetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject),
+            &runLoopAddress,
+            0,
+            nil,
+            size,
+            &runLoop)) {
+                print("error while setting up audio device listener")
+        }
+        
+        var outputDeviceAddress = AudioObjectPropertyAddress(
+            mSelector: AudioObjectPropertySelector(kAudioHardwarePropertyDefaultOutputDevice),
+            mScope: AudioObjectPropertyScope(kAudioObjectPropertyScopeGlobal),
+            mElement: AudioObjectPropertyElement(kAudioObjectPropertyElementMaster))
+        
+        if (kAudioHardwareNoError != AudioObjectAddPropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &outputDeviceAddress,
+            nil,
+            audioObjectPropertyListenerBlock)) {
+                print("error while adding audio device listener")
+        }
 
     }
 
     func applicationWillTerminate(aNotification: NSNotification) {
         volumeTap.stopWatchingMediaKeys()
     }
+    
+    // Audio device change listener helper functions
+    
+    func getDefaultAudioOutputDevice () -> AudioObjectID {
+        var devicePropertyAddress = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDefaultOutputDevice, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMaster)
+        var deviceID: AudioObjectID = 0
+        var dataSize = UInt32(truncatingBitPattern: sizeof(AudioDeviceID))
+        let systemObjectID = AudioObjectID(bitPattern: kAudioObjectSystemObject)
+        if (kAudioHardwareNoError != AudioObjectGetPropertyData(systemObjectID, &devicePropertyAddress, 0, nil, &dataSize, &deviceID)) { return 0 }
+        return deviceID
+    }
+    
+    func getDefaultAudioOutputDeviceName () -> String {
+        var devicePropertyAddress = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceNameCFString, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMaster)
+        var dataSize: UInt32 = UInt32(sizeof(CFStringRef))
+        var deviceName: CFStringRef = ""
+        if (kAudioHardwareNoError != AudioObjectGetPropertyData(getDefaultAudioOutputDevice(), &devicePropertyAddress, 0, nil, &dataSize, &deviceName)) { return "error" }
+        return String(deviceName)
+    }
+    
+    func audioObjectPropertyListenerBlock (numberAddresses: UInt32, addresses: UnsafePointer<AudioObjectPropertyAddress>) {
+        var index: UInt32 = 0
+        while index < numberAddresses {
+            let address: AudioObjectPropertyAddress = addresses[Int(index)]
+            switch address.mSelector {
+            case kAudioHardwarePropertyDefaultOutputDevice:
+                if (getDefaultAudioOutputDeviceName().rangeOfString(airplayDeviceName) != nil) {
+                    print("enabling")
+                } else {
+                    print("disabling")
+                }
+            default:
+                print("We didn't expect this!")
+                
+            }
+            index += 1
+        }
+    }
 
+    // Volume Key Tap callback
+    
     override func mediaKeyTap(keyTap: SPMediaKeyTap!, receivedMediaKeyEvent event: NSEvent!) {
         let keyCode = (event.data1 & 0xFFFF0000) >> 16
         let keyFlags = event.data1 & 0x0000FFFF
@@ -63,6 +138,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+    
+    // GET request
     
     func sendGetRequest(url: String) {
         let session = NSURLSession.sharedSession()
