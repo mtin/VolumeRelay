@@ -20,6 +20,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = statusBarItem.button {
             button.image = NSImage(named: "StatusBarButtonImage")
         }
+        
+        // status bar menu
+        let menu = NSMenu()
+        
+        menu.addItem(NSMenuItem(title: "Quit VolumeRelay", action: Selector("terminate:"), keyEquivalent: "q"))
+        
+        statusBarItem.menu = menu
     }
 
     func applicationWillTerminate(aNotification: NSNotification) {
