@@ -13,9 +13,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @IBOutlet weak var window: NSWindow!
 
+    let statusBarItem = NSStatusBar.systemStatusBar().statusItemWithLength(NSSquareStatusItemLength)
 
     func applicationDidFinishLaunching(aNotification: NSNotification) {
-        // Insert code here to initialize your application
+        // status bar image
+        if let button = statusBarItem.button {
+            button.image = NSImage(named: "StatusBarButtonImage")
+        }
     }
 
     func applicationWillTerminate(aNotification: NSNotification) {
