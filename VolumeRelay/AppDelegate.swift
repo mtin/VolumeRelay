@@ -25,7 +25,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         // status bar image
         if let button = statusBarItem.button {
-            button.image = NSImage(named: "StatusBarButtonImage")
+            button.image = NSImage(named: "StatusBarButtonImageDisabled")
         }
         
         // status bar menu
@@ -149,8 +149,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func setupVolumeKeyTap() {
         if (getDefaultAudioOutputDeviceName().rangeOfString(airplayDeviceName) != nil) {
             volumeTap.startWatchingMediaKeys()
+            if let button = statusBarItem.button {
+                button.image = NSImage(named: "StatusBarButtonImageEnabled")
+            }
         } else {
             volumeTap.stopWatchingMediaKeys()
+            if let button = statusBarItem.button {
+                button.image = NSImage(named: "StatusBarButtonImageDisabled")
+            }
         }
 
     }
