@@ -43,6 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupVolumeKeyTap()
         
         // audio device listener http://stackoverflow.com/questions/26070058/how-to-get-notification-if-system-preferences-default-sound-changed
+        
         // tell HAL to manage its own thread for notifications 
         var runLoopAddress = AudioObjectPropertyAddress(
             mSelector: AudioObjectPropertySelector(kAudioHardwarePropertyRunLoop),
@@ -96,19 +97,48 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func getDefaultAudioOutputDevice () -> AudioObjectID {
         var devicePropertyAddress = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDefaultOutputDevice, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMaster)
         var deviceID: AudioObjectID = 0
-        var dataSize = UInt32(truncatingBitPattern: sizeof(AudioDeviceID))
+        var dataSize = UInt32(truncatingBitPattern: sizeof(AudioObjectID))
         let systemObjectID = AudioObjectID(bitPattern: kAudioObjectSystemObject)
         if (kAudioHardwareNoError != AudioObjectGetPropertyData(systemObjectID, &devicePropertyAddress, 0, nil, &dataSize, &deviceID)) { return 0 }
         return deviceID
     }
     
-    func getDefaultAudioOutputDeviceName () -> String {
+    func getAudioOutputDeviceName(audioDevice: AudioObjectID) -> String {
         var devicePropertyAddress = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceNameCFString, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMaster)
         var dataSize: UInt32 = UInt32(sizeof(CFStringRef))
         var deviceName: CFStringRef = ""
-        if (kAudioHardwareNoError != AudioObjectGetPropertyData(getDefaultAudioOutputDevice(), &devicePropertyAddress, 0, nil, &dataSize, &deviceName)) { return "error" }
-        return String(deviceName)
+        if (kAudioHardwareNoError != AudioObjectGetPropertyData(audioDevice, &devicePropertyAddress, 0, nil, &dataSize, &deviceName)) { return "error retrieving output device name" }
+        return deviceName as String;
     }
+        
+    
+    func getNameOfActiveDataSourceOfAudioDevice(audioDevice: AudioObjectID) -> String {
+        // get the active data source id of default device
+        var sourceAddress = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDataSource, mScope: kAudioDevicePropertyScopeOutput, mElement: kAudioObjectPropertyElementMaster)
+        var dataSourceId: UInt32 = 0
+        var dataSourceIdSize: UInt32 = UInt32(sizeof(UInt32))
+        if (kAudioHardwareNoError != AudioObjectGetPropertyData(getDefaultAudioOutputDevice(), &sourceAddress, 0, nil, &dataSourceIdSize, &dataSourceId)) { return "error retrieving active data source" }
+        
+        //return dataSourceId;
+        
+        // get the name of the active data source
+        var nameAddr = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDataSourceNameForIDCFString, mScope: kAudioObjectPropertyScopeOutput, mElement: kAudioObjectPropertyElementMaster)
+        var value: CFString = ""
+        
+        var audioValueTranslation = AudioValueTranslation(
+            mInputData: &dataSourceId,
+            mInputDataSize: UInt32(truncatingBitPattern: sizeof(AudioDeviceID)),
+            mOutputData: &value,
+            mOutputDataSize: UInt32(sizeof(CFStringRef)))
+        
+        var propsize: UInt32 = UInt32(sizeof(AudioValueTranslation))
+        
+        if (kAudioHardwareNoError != AudioObjectGetPropertyData(getDefaultAudioOutputDevice(), &nameAddr, 0, nil, &propsize, &audioValueTranslation)) { return "error retrieving name of active data source" }
+        
+        return value as String;
+    }
+    
+    // Audio device change listener callback
     
     func audioObjectPropertyListenerBlock (numberAddresses: UInt32, addresses: UnsafePointer<AudioObjectPropertyAddress>) {
         var index: UInt32 = 0
@@ -154,7 +184,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Volume Key Tap setup
     
     func setupVolumeKeyTap() {
-        if (getDefaultAudioOutputDeviceName().rangeOfString(airplayDeviceName) != nil) {
+        print(getAudioOutputDeviceName(getDefaultAudioOutputDevice()) + " (" + getNameOfActiveDataSourceOfAudioDevice(getDefaultAudioOutputDevice()) + ")")
+        if (getNameOfActiveDataSourceOfAudioDevice(getDefaultAudioOutputDevice()).rangeOfString(airplayDeviceName) != nil) {
             volumeTap.startWatchingMediaKeys()
             if let button = statusBarItem.button {
                 button.image = NSImage(named: "StatusBarButtonImageEnabled")
