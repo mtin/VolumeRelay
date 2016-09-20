@@ -17,10 +17,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let statusBarItem = NSStatusBar.systemStatusBar().statusItemWithLength(NSSquareStatusItemLength)
     var volumeTap: SPMediaKeyTap!
     
-    var volume_up : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_%2B&amount=10"
-    var volume_down : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_-&amount=10"
+    var volume_up : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_%2B&amount=5"
+    var volume_down : String = "http://192.168.178.20/elropi.py?remote=yamaha&command=VOLUME_-&amount=5"
     
-    var airplayDeviceName: String = "Pioneer N-50"
+    var airplayDeviceNames: [String] = ["Pioneer USB Audio Device", "Pioneer N-50"]
     
     var increaseNotification: NSUserNotification = NSUserNotification()
     var decreaseNotification: NSUserNotification = NSUserNotification()
@@ -37,6 +37,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "Quit VolumeRelay", action: Selector("terminate:"), keyEquivalent: "q"))
         
         statusBarItem.menu = menu
+        
+        // set up notifications
+        increaseNotification.title = "Increasing Volume"
+        increaseNotification.informativeText = "Turning up the volume for audio device"
+        increaseNotification.soundName = nil
+        increaseNotification.contentImage = NSImage(named: "VolumeUpImage")
+        
+        decreaseNotification.title = "Decreasing Volume"
+        decreaseNotification.informativeText = "Turning down the volume for audio device"
+        decreaseNotification.soundName = nil
+        decreaseNotification.contentImage = NSImage(named: "VolumeDownImage")
         
         // volume key listener
         volumeTap = SPMediaKeyTap(delegate: self)
@@ -74,17 +85,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             audioObjectPropertyListenerBlock)) {
                 print("error while adding audio device listener")
         }
-        
-        // set up notifications
-        increaseNotification.title = "Increasing Volume"
-        increaseNotification.informativeText = "Turning up the volume for " + airplayDeviceName
-        increaseNotification.soundName = nil
-        increaseNotification.contentImage = NSImage(named: "VolumeUpImage")
-        
-        decreaseNotification.title = "Decreasing Volume"
-        decreaseNotification.informativeText = "Turning down the volume for " + airplayDeviceName
-        decreaseNotification.soundName = nil
-        decreaseNotification.contentImage = NSImage(named: "VolumeDownImage")
+
 
     }
 
@@ -185,7 +186,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func setupVolumeKeyTap() {
         print(getAudioOutputDeviceName(getDefaultAudioOutputDevice()) + " (" + getNameOfActiveDataSourceOfAudioDevice(getDefaultAudioOutputDevice()) + ")")
-        if (getNameOfActiveDataSourceOfAudioDevice(getDefaultAudioOutputDevice()).rangeOfString(airplayDeviceName) != nil) {
+        if let index = airplayDeviceNames.indexOf(getNameOfActiveDataSourceOfAudioDevice(getDefaultAudioOutputDevice())) {
+            increaseNotification.informativeText = "Turning up the volume for " + airplayDeviceNames[index]
+            decreaseNotification.informativeText = "Turning down the volume for " + airplayDeviceNames[index]
             volumeTap.startWatchingMediaKeys()
             if let button = statusBarItem.button {
                 button.image = NSImage(named: "StatusBarButtonImageEnabled")
